@@ -1,0 +1,1138 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>ケタペイ</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=JetBrains+Mono:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<style>
+/* Layout: 左に設定（幹事）または参加パネル（ゲスト）、右に伝票テープ＋ルーレット、下に精算。狭い画面では縦一列 */
+:root{
+  --bg:#ECEFF5; --paper:#FFFFFF; --ink:#16182A; --muted:#5E6378; --line:#D5DAE6;
+  --accent:#8A3FFC; --accent-ink:#FFFFFF;
+  --page-grad:linear-gradient(135deg,#9945FF 0%,#7B4DF2 30%,#2FB8C9 70%,#14F195 100%); --head-ink:#FFFFFF; --head-sub:rgba(255,255,255,.88); --head-pop:#14F195; --hit:#F2445E; --ok:#12936B; --me:#EEEBFF; --sp1:#2B2E4A; --sp2:#474B6E;
+  --seg1:#4B3CF0; --seg2:#14B8A6; --seg3:#F59E0B; --seg4:#F2445E; --seg5:#0EA5E9; --seg6:#8B5CF6; --seg7:#84CC16; --seg8:#EC4899;
+  --font-display:"Dela Gothic One","Hiragino Sans","Yu Gothic",sans-serif;
+  --font-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1120; --paper:#1A1D31; --ink:#ECEEF8; --muted:#9AA0BC; --line:#2E3350;
+  --accent:#B07CFF; --accent-ink:#0F1120;
+  --page-grad:linear-gradient(135deg,#3A1678 0%,#2A1F6B 35%,#0F4E5C 75%,#0B6B4A 100%); --head-ink:#FFFFFF; --head-sub:rgba(255,255,255,.8); --head-pop:#14F195; --hit:#FF6B81; --ok:#34D399; --me:#262246; --sp1:#3D4270; --sp2:#565C90; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1120; --paper:#1A1D31; --ink:#ECEEF8; --muted:#9AA0BC; --line:#2E3350;
+  --accent:#B07CFF; --accent-ink:#0F1120;
+  --page-grad:linear-gradient(135deg,#3A1678 0%,#2A1F6B 35%,#0F4E5C 75%,#0B6B4A 100%); --head-ink:#FFFFFF; --head-sub:rgba(255,255,255,.8); --head-pop:#14F195; --hit:#FF6B81; --ok:#34D399; --me:#262246; --sp1:#3D4270; --sp2:#565C90; color-scheme:dark}
+*{box-sizing:border-box}
+html{background:#5B3FE0}
+body{background:var(--bg);background-image:var(--page-grad);background-repeat:no-repeat;min-height:100vh;color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
+.wrap{max-width:1120px;margin:0 auto;display:grid;gap:20px}
+header h1{color:var(--head-ink);font-family:var(--font-display);font-weight:400;font-size:clamp(28px,5vw,44px);line-height:1.1;margin:0;letter-spacing:.01em;text-wrap:balance}
+header h1 span{color:var(--head-pop)}
+header p{margin:6px 0 0;color:var(--head-sub);max-width:62ch}
+.grid{display:grid;grid-template-columns:320px minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.col{display:grid;gap:20px;min-width:0}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(20,10,60,.18);padding:18px;display:grid;gap:14px;min-width:0}
+.panel h2{font-size:12px;letter-spacing:.12em;color:var(--muted);margin:0;font-weight:700}
+label{font-size:13px;color:var(--muted);display:grid;gap:4px}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible,.filebtn:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.amount-in{font-family:var(--font-mono);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row > *{min-width:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 6px 4px 10px;border-radius:999px;background:var(--bg);border:1px solid var(--line);font-size:14px}
+.chip i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.chip small{font-size:10px;color:var(--accent);font-weight:700}
+.chip button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:2px 4px;border-radius:50%}
+.chip button:hover{color:var(--hit)}
+button.btn,.filebtn{font:inherit;font-weight:700;border-radius:10px;padding:10px 14px;cursor:pointer;border:1px solid var(--line);background:var(--paper);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:6px}
+button.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.btn.sm,.filebtn{padding:6px 12px;font-size:13px}
+button.btn:disabled{opacity:.45;cursor:not-allowed}
+.filebtn input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.filebtn{position:relative}
+.hint{font-size:12px;color:var(--muted);margin:0}
+.err{font-size:12px;color:var(--hit);margin:0}
+.okmsg{font-size:12px;color:var(--ok);margin:0}
+hr.sep{border:0;border-top:1px solid var(--line);margin:4px 0;width:100%}
+
+/* tape */
+.tape{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.cell{flex:1 0 74px;border:1px dashed var(--line);border-radius:10px;padding:8px 6px;text-align:center;display:grid;gap:2px;background:var(--bg);transition:border-color .2s,background .2s}
+.cell .place{font-size:11px;color:var(--muted);letter-spacing:.08em}
+.cell .d{font-family:var(--font-mono);font-weight:700;font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums}
+.cell .yen{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.cell .who{font-size:13px;font-weight:700;min-height:1.5em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell.current{border:2px solid var(--accent);background:var(--paper)}
+.cell.done{border-style:solid}
+.cell.zero{opacity:.5}
+
+.stage{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:20px;align-items:center}
+@media (max-width:620px){.stage{grid-template-columns:minmax(0,1fr)}}
+.wheel-box{position:relative;width:100%;max-width:300px;aspect-ratio:1;margin:0 auto}
+.wheel-box canvas{width:100%;height:100%;display:block}
+.pointer{position:absolute;left:50%;top:-6px;transform:translateX(-50%);width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;border-top:24px solid var(--ink);filter:drop-shadow(0 2px 0 var(--paper))}
+.now{display:grid;gap:10px;min-width:0}
+.now .label{font-size:13px;color:var(--muted)}
+.now .big{font-family:var(--font-display);font-size:clamp(24px,4vw,34px);line-height:1.25}
+.now .big b{font-weight:400;color:var(--hit)}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+
+/* join QR */
+.joinbox{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start}
+@media (max-width:380px){.joinbox{grid-template-columns:minmax(0,1fr)}}
+.qr{background:#FFFFFF;padding:8px;border-radius:8px;width:max-content}
+.qr img,.qr canvas{display:block;width:150px;height:150px}
+.qr.lg img,.qr.lg canvas{width:168px;height:168px}
+.roomcode{font-family:var(--font-mono);font-weight:700;font-size:18px;letter-spacing:.08em}
+
+/* results */
+.res{display:grid;gap:10px}
+.person{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;padding:10px;border-radius:10px}
+.person + .person{border-top:1px solid var(--line);border-top-left-radius:0;border-top-right-radius:0}
+.person.me{background:var(--me)}
+.person .nm{display:flex;align-items:center;gap:8px;font-weight:700;min-width:0}
+.person .nm i{width:12px;height:12px;border-radius:3px;flex:none}
+.person .sum{font-family:var(--font-mono);font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.bar{grid-column:1/-1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
+.bar span{display:block;height:100%;border-radius:4px;transition:width .5s}
+.person .sub{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.tag{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.tag.kanji{border-color:var(--ok);color:var(--ok)}
+.tag.you{border-color:var(--accent);color:var(--accent)}
+.qr-wrap{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:start;padding:12px;border-radius:10px;background:var(--bg)}
+@media (max-width:480px){.qr-wrap{grid-template-columns:minmax(0,1fr)}}
+.url{font-family:var(--font-mono);font-size:11px;word-break:break-all;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:8px;max-height:110px;overflow:auto}
+.empty{color:var(--muted);font-size:14px;padding:8px 0}
+.note{font-size:12px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px;margin:0}
+.event{font-size:14px;font-weight:700;color:var(--hit);border:1px solid var(--hit);border-radius:10px;padding:8px 12px;margin:0}
+.sp-list{display:flex;flex-wrap:wrap;gap:6px}
+.sp-list button{font:inherit;font-size:13px;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--muted);text-decoration:line-through}
+.sp-list button[aria-pressed="true"]{background:var(--sp1);border-color:var(--sp1);color:#FFFFFF;text-decoration:none}
+.sp-list button:disabled{opacity:.5;cursor:not-allowed}
+.check{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink)}
+.check input{width:auto}
+.acc-head{display:flex;align-items:center;gap:12px;min-width:0}
+.avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#FFFFFF;font-weight:700;font-size:18px;flex:none}
+.acc-name{font-weight:700;font-size:17px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acc-wallet{font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stat{background:var(--bg);border-radius:10px;padding:8px;text-align:center}
+.stat b{display:block;font-family:var(--font-mono);font-size:16px;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--muted)}
+.badges{display:flex;flex-wrap:wrap;gap:6px}
+.badge{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:linear-gradient(135deg,#9945FF,#14F195);color:#FFFFFF}
+.badge.off{background:var(--bg);color:var(--muted);font-weight:500}
+.hist{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:13px}
+.hist li{display:flex;justify-content:space-between;gap:8px}
+.hist li span:last-child{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.log{font-family:var(--font-mono);font-size:12px;color:var(--muted);max-height:120px;overflow:auto;margin:0;padding:0;list-style:none;display:grid;gap:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>ケタ<span>ペイ</span></h1>
+    <p id="lead">合計金額を一桁ずつルーレットで割り振る割り勘ゲーム。決まった金額は Solana Pay の QR で幹事へ送れます（devnet 前提のデモ）。</p>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <!-- アカウント -->
+      <section class="panel" id="accPanel" aria-label="アカウント">
+        <h2>アカウント</h2>
+        <div id="accBody"><p class="hint">準備中…</p></div>
+      </section>
+
+      <!-- 幹事用 設定 -->
+      <section class="panel" id="settings" aria-label="設定">
+        <h2>お会計</h2>
+        <label for="total">合計金額（円）
+          <input id="total" class="amount-in" inputmode="numeric" value="12,345" autocomplete="off">
+        </label>
+        <p class="err" id="totalErr" hidden></p>
+
+        <h2>メンバー</h2>
+        <div class="chips" id="chips"></div>
+        <form class="row" id="addForm">
+          <input id="newName" placeholder="名前を追加" maxlength="12" autocomplete="off" style="flex:1">
+          <button class="btn" type="submit">追加</button>
+        </form>
+        <div class="row" id="selfRow" hidden><button class="btn sm" type="button" id="addSelf">自分（アカウント）を追加</button></div>
+        <p class="hint">2〜8人。<b>参</b>の付いた人は参加QRから入った人です。</p>
+
+        <h2>送金先（幹事）</h2>
+        <label for="kanji">受け取る人
+          <select id="kanji"></select>
+        </label>
+        <label for="addr">幹事のウォレットアドレス（devnet）
+          <input id="addr" placeholder="例: 7Xk…（Base58, 32〜44文字）" autocomplete="off" spellcheck="false">
+        </label>
+        <div class="row">
+          <label class="filebtn" for="addrFile">QR画像から読み取る
+            <input type="file" id="addrFile" accept="image/*">
+          </label>
+          <span class="hint">スマホならその場で撮影もできます</span>
+        </div>
+        <p class="err" id="addrErr" hidden></p>
+        <p class="okmsg" id="addrOk" hidden></p>
+        <div class="row">
+          <label for="token" style="flex:1">通貨
+            <select id="token">
+              <option value="SOL">SOL</option>
+              <option value="USDC">USDC（devnet）</option>
+            </select>
+          </label>
+          <label for="rate" style="flex:1">1単位あたり（円）
+            <input id="rate" inputmode="decimal" value="25000" autocomplete="off">
+          </label>
+        </div>
+        <p class="hint">レートは手入力のデモ値です。実勢とは連動しません。</p>
+
+        <h2>特殊マス</h2>
+        <div class="sp-list" id="spList" role="group" aria-label="使う特殊マス"></div>
+        <p class="hint">押して入れる・外すを切り替えます。1つあたりメンバー1人分の半分の幅です。「前の人へ」は直前の桁で当たった人に回ります。</p>
+      </section>
+
+      <!-- 幹事用 参加QR -->
+      <section class="panel" id="roomPanel" aria-label="みんなで参加">
+        <h2>みんなで参加</h2>
+        <div id="roomBody"><p class="hint">準備中…</p></div>
+      </section>
+
+      <!-- ゲスト用 -->
+      <section class="panel" id="guestPanel" aria-label="ルームに参加" hidden>
+        <h2>ルームに参加</h2>
+        <div class="roomcode" id="guestCode"></div>
+        <p class="hint" id="guestStatus">ルームを読み込んでいます…</p>
+        <form class="row" id="joinForm">
+          <input id="joinName" placeholder="表示する名前" maxlength="12" autocomplete="off" style="flex:1">
+          <button class="btn primary" type="submit" id="joinBtn">参加する</button>
+        </form>
+        <p class="err" id="joinErr" hidden></p>
+        <p class="okmsg" id="joinOk" hidden></p>
+        <p class="note">幹事がルーレットを回すと、この画面にも結果が届きます。自分の負担額が決まると、下に送金QRが出ます。</p>
+        <div class="row"><button class="btn sm" type="button" id="leaveBtn">ルームを抜けて自分で使う</button></div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel" aria-label="ルーレット">
+        <h2>伝票テープ</h2>
+        <div class="tape" id="tape"></div>
+        <div class="stage">
+          <div class="wheel-box">
+            <canvas id="wheel" width="600" height="600" aria-label="ルーレット"></canvas>
+            <div class="pointer" aria-hidden="true"></div>
+          </div>
+          <div class="now">
+            <div class="label" id="nowLabel">次の桁</div>
+            <div class="big" id="nowBig" aria-live="polite">—</div>
+            <p class="event" id="event" aria-live="polite" hidden></p>
+            <div class="btns" id="hostBtns">
+              <button class="btn primary" id="spinBtn" type="button">この桁を回す</button>
+              <button class="btn" id="allBtn" type="button">残りを全部回す</button>
+              <button class="btn" id="resetBtn" type="button">やり直す</button>
+            </div>
+            <ul class="log" id="log"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="精算">
+        <h2>精算</h2>
+        <div class="res" id="res"></div>
+        <p class="note">Solana Pay の QR はウォレットのネットワーク設定に従って送金されます。テストでは Phantom などを devnet に切り替えてから読み取ってください。実際のお金を賭ける使い方は日本では法的に注意が必要なので、デモは devnet かポイント扱いにしておくのが安全です。</p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const ARTIFACT_URL = "https://claude.ai/artifact/3B7UKCD2rFBfGGsQpAyC2y";
+  const PLACES = ["一","十","百","千","万","十万","百万","千万"];
+  const SEGVARS = ["--seg1","--seg2","--seg3","--seg4","--seg5","--seg6","--seg7","--seg8"];
+  const USDC_DEVNET = "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
+  const B58 = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+  const LS_KEY = "ketapay-room";
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const $ = id => document.getElementById(id);
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const yen = n => Number(n).toLocaleString("ja-JP") + "円";
+  const rand = n => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; };
+  const rid = (len=8) => { const c="abcdefghijkmnpqrstuvwxyz23456789"; let s=""; for(let i=0;i<len;i++) s+=c[rand(c.length)]; return s; };
+  const lsGet = k => { try { return localStorage.getItem(k); } catch(e){ return null; } };
+  const lsSet = (k,v) => { try { v==null ? localStorage.removeItem(k) : localStorage.setItem(k,v); } catch(e){} };
+
+  // ---------- state ----------
+  let nextId = 1;
+  const mk = name => ({ id: "m" + (nextId++), name, uid: null });
+  const st = {
+    members: ["たける","みさき","ゆうと","あおい"].map(mk),
+    kanjiId: null, total: 12345, digits: [],
+    addr: "", token: "SOL", rate: 25000,
+    specials: ["split","kanji","prev","again"], lastEvent: "",
+    spinning: false, openQR: null,
+  };
+  st.kanjiId = st.members[0].id;
+
+  // 合言葉 → ルームID（UTF-8 を16進にして保存パスに使える形へ）
+  const normPass = p => String(p || "").normalize("NFKC").trim().toLowerCase().replace(/\s+/g, "");
+  const toId = p => "k" + [...new TextEncoder().encode(normPass(p))].map(b => b.toString(16).padStart(2,"0")).join("");
+  const ROOM_RE = /^[a-z0-9]{3,120}$/;
+  const newPass = () => String(100000 + rand(900000));
+  let roomPass = "";
+  const hashRoom = (location.hash.match(/^#room-([a-z0-9]{3,120})$/) || [])[1] || null;
+  let mode = hashRoom ? "guest" : "main";   // main = 幹事（ローカル or ルームのホスト）
+  let roomId = null;                         // ホスト中のルーム
+  let guestRoom = hashRoom;                  // ゲストとして見ているルーム
+  let roomState = null;                      // ゲストが受け取った状態
+  let db = null, user = null, myId = null, canWrite = null, capsReady = false;
+  let unsubJoins = null, unsubGuest = null;
+  const removedUids = new Set();
+  let wheelAngle = 0;
+  // アカウント
+  let account = null, accountLoaded = false, myGames = [], myColor = "#8A3FFC", accEditing = false;
+  const recording = new Set();
+
+  const view = () => mode === "guest" ? roomState : st;
+  // 一の位から回し、いちばん大きい桁を最後に残す
+  const idxOf = v => {
+    if(!v) return -1;
+    for(let i = v.digits.length - 1; i >= 0; i--){ const g = v.digits[i]; if(g.d > 0 && g.who == null) return i; }
+    return -1;
+  };
+  const isFinalDigit = (v,i) => i >= 0 && v.digits.findIndex(g => g.d > 0) === i;
+  const memberIdx = (v,id) => v.members.findIndex(m => m.id === id);
+  const memberName = (v,id) => { const m = v.members.find(x => x.id === id); return m ? m.name : "（不明）"; };
+  const colorOf = (v,id) => `var(${SEGVARS[Math.max(0,memberIdx(v,id)) % 8]})`;
+
+  function buildDigits(){
+    const s = String(st.total);
+    st.digits = [...s].map((ch,i) => {
+      const p = s.length-1-i, d = +ch;
+      return { place: PLACES[p], d, value: d*10**p, who: null, sp: null, alloc: null, seg: null };
+    });
+    st.gameId = "g" + rid(10);
+  }
+
+  // ---------- special cells ----------
+  // 特殊マス：メンバー1人分の半分の幅で混ぜる
+  const SPECIALS = [
+    { key:"split", wheel:"÷ 全員", label:"全員で割る" },
+    { key:"kanji", wheel:"幹事払い", label:"幹事が払う" },
+    { key:"prev",  wheel:"← 前の人", label:"前の人へ" },
+    { key:"again", wheel:"↻ もう一回", label:"もう一回" },
+  ];
+  const spByKey = k => SPECIALS.find(x => x.key === k);
+  const spOn = v => !v ? [] : Array.isArray(v.specials) ? v.specials : (v.specials === false ? [] : SPECIALS.map(x => x.key));
+  function segments(v){
+    if(!v) return [];
+    const M = v.members.length;
+    let list = v.members.map((m,i) => ({ key:"m:"+m.id, label:m.name, fill:css(SEGVARS[i%8]), w:2, member:m, pos:(i+0.5)/M }));
+    const enabled = SPECIALS.filter(x => spOn(v).includes(x.key));
+    if(enabled.length){
+      // 特殊マスはメンバーの間に均等に散らす（固まらないように）
+      const S = enabled.length;
+      enabled.forEach((sp,j) => list.push({ key:"s:"+sp.key, label:sp.wheel, fill:css(j%2 ? "--sp2" : "--sp1"), w:1, sp, pos:(j+0.25)/S }));
+      list.sort((a,b) => a.pos - b.pos);
+    }
+    let acc = 0; const U = list.reduce((a,x) => a + x.w, 0);
+    list.forEach(x => { x.from = acc/U; acc += x.w; x.to = acc/U; });
+    return list;
+  }
+  function splitAlloc(v, value){
+    const ids = v.members.map(m => m.id), n = ids.length;
+    const base = Math.floor(value/n); let rem = value - base*n;
+    const order = [...ids]; for(let i=order.length-1;i>0;i--){ const j=rand(i+1); [order[i],order[j]]=[order[j],order[i]]; }
+    const alloc = Object.fromEntries(ids.map(id => [id, base]));
+    for(const id of order){ if(rem <= 0) break; alloc[id]++; rem--; }
+    return alloc;
+  }
+  // 直前に決まった桁（一の位側）の支払い人
+  function prevPayer(v, i){
+    for(let k = i+1; k < v.digits.length; k++){
+      const g = v.digits[k];
+      if(g.who != null) return g.who === "*split" ? null : g.who;
+    }
+    return null;
+  }
+  function whoText(v, g){
+    if(g.who === "*split") return "÷ 全員";
+    const nm = memberName(v, g.who);
+    if(g.sp === "kanji") return "幹事 " + nm;
+    if(g.sp === "prev") return "← " + nm;
+    return nm;
+  }
+  function whoLong(v, g){
+    if(g.who === "*split") return "全員で割る";
+    const nm = memberName(v, g.who);
+    if(g.sp === "kanji") return `幹事が払う（${nm}）`;
+    if(g.sp === "prev") return `前の人へ（${nm}）`;
+    return nm;
+  }
+  const whoColor = (v, g) => g.who === "*split" ? "var(--accent)" : colorOf(v, g.who);
+
+  // ---------- wheel ----------
+  const cv = $("wheel"), ctx = cv.getContext("2d");
+  function drawWheel(){
+    const v = view(); const c = 300, R = 290;
+    ctx.clearRect(0,0,600,600);
+    const segs = segments(v);
+    if(!segs.length){
+      ctx.beginPath(); ctx.arc(c,c,R,0,2*Math.PI); ctx.fillStyle = css("--line"); ctx.fill();
+    }
+    segs.forEach(x => {
+      const a0 = wheelAngle + x.from*2*Math.PI - Math.PI/2, a1 = wheelAngle + x.to*2*Math.PI - Math.PI/2;
+      ctx.beginPath(); ctx.moveTo(c,c); ctx.arc(c,c,R,a0,a1); ctx.closePath();
+      ctx.fillStyle = x.fill; ctx.fill();
+      ctx.strokeStyle = css("--paper"); ctx.lineWidth = 4; ctx.stroke();
+      ctx.save(); ctx.translate(c,c); ctx.rotate((a0+a1)/2);
+      ctx.fillStyle = "#FFFFFF";
+      ctx.font = x.sp ? "700 22px 'Zen Kaku Gothic New', sans-serif" : "700 30px 'Zen Kaku Gothic New', sans-serif";
+      ctx.textAlign = "right"; ctx.textBaseline = "middle";
+      const nm = x.label.length > 6 ? x.label.slice(0,6)+"…" : x.label;
+      ctx.fillText(nm, R-22, 0); ctx.restore();
+    });
+    ctx.beginPath(); ctx.arc(c,c,58,0,2*Math.PI); ctx.fillStyle = css("--paper"); ctx.fill();
+    const i = idxOf(v); const cur = v && i >= 0 ? v.digits[i] : null;
+    ctx.fillStyle = css("--ink"); ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.font = "700 44px 'JetBrains Mono', monospace";
+    ctx.fillText(cur ? String(cur.d) : (v ? "✓" : "…"), c, c+2);
+  }
+
+  function animateTo(seg){
+    return new Promise(resolve => {
+      const width = (seg.to - seg.from) * 2*Math.PI;
+      const jitter = (Math.random()-.5)*width*0.6;
+      const targetMod = -((seg.from + seg.to)/2 * 2*Math.PI) + jitter;
+      const start = wheelAngle;
+      const base = start - (((start - targetMod) % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+      const end = base + 2*Math.PI*(reduce ? 1 : 5);
+      const dur = reduce ? 300 : 2400, t0 = performance.now();
+      const ease = t => 1 - Math.pow(1-t, 4);
+      (function frame(now){
+        const t = Math.min(1,(now-t0)/dur);
+        wheelAngle = start + (end-start)*ease(t); drawWheel();
+        if(t<1) requestAnimationFrame(frame);
+        else { wheelAngle = end % (2*Math.PI); resolve(); }
+      })(t0);
+    });
+  }
+
+  async function spinOnce(){
+    const i = idxOf(st); if(i < 0 || st.spinning) return;
+    st.spinning = true; st.lastEvent = ""; render();
+    const segs = segments(st);
+    const U = segs.reduce((a,x) => a + x.w, 0);
+    let r = rand(U), pick = segs[0];
+    for(const x of segs){ if(r < x.w){ pick = x; break; } r -= x.w; }
+    await animateTo(pick);
+    const g = st.digits[i];
+    g.seg = pick.key;
+    const where = `${g.place}の位（${yen(g.value)}）`;
+    if(pick.member){
+      g.who = pick.member.id; g.sp = null; g.alloc = { [g.who]: g.value };
+      st.lastEvent = "";
+    } else if(pick.sp.key === "split"){
+      g.who = "*split"; g.sp = "split"; g.alloc = splitAlloc(st, g.value);
+      st.lastEvent = `特殊マス「全員で割る」：${where}を${st.members.length}人で分けます`;
+    } else if(pick.sp.key === "kanji"){
+      g.who = st.kanjiId; g.sp = "kanji"; g.alloc = { [g.who]: g.value };
+      st.lastEvent = `特殊マス「幹事が払う」：${where}は幹事の${memberName(st, st.kanjiId)}さんが払います`;
+    } else if(pick.sp.key === "prev"){
+      const p = prevPayer(st, i);
+      if(p){
+        g.who = p; g.sp = "prev"; g.alloc = { [p]: g.value };
+        st.lastEvent = `特殊マス「前の人へ」：${where}は直前に当たった${memberName(st, p)}さんへ`;
+      } else {
+        g.seg = null;
+        st.lastEvent = "特殊マス「前の人へ」：前に当たった人がいないので、この桁はもう一度回します";
+      }
+    } else {
+      g.seg = null;
+      st.lastEvent = `特殊マス「もう一回」：${g.place}の位をもう一度回します`;
+    }
+    st.spinning = false; render(); saveRoom(); maybeRecord();
+  }
+
+  // ---------- render ----------
+  function render(){
+    const guest = mode === "guest";
+    $("settings").hidden = guest;
+    $("roomPanel").hidden = guest;
+    $("guestPanel").hidden = !guest;
+    $("hostBtns").hidden = guest;
+    $("lead").textContent = guest
+      ? "幹事のルーレットをリアルタイムで見ています。名前を登録すると、ルーレットの候補に入ります。"
+      : "合計金額を一桁ずつルーレットで割り振る割り勘ゲーム。決まった金額は Solana Pay の QR で幹事へ送れます（devnet 前提のデモ）。";
+    if(!guest) renderSettings(); else renderGuest();
+    renderAccount(); renderTape(); renderNow(); renderLog(); renderResults(); renderRoom(); drawWheel();
+  }
+
+  function renderSettings(){
+    const chips = $("chips"); chips.innerHTML = "";
+    st.members.forEach(m => {
+      const el = document.createElement("span"); el.className = "chip";
+      el.innerHTML = `<i style="background:${colorOf(st,m.id)}"></i><span></span>`;
+      el.querySelector("span").textContent = m.name;
+      if(m.uid){ const s = document.createElement("small"); const self = myId && m.uid === myId; s.textContent = self ? "自分" : "参"; s.title = self ? "あなたのアカウント" : "参加QR・合言葉から参加"; el.appendChild(s); }
+      if(st.members.length > 2){
+        const b = document.createElement("button"); b.type="button"; b.textContent="×";
+        b.setAttribute("aria-label", m.name+"を外す");
+        b.onclick = () => removeMember(m.id);
+        el.appendChild(b);
+      }
+      chips.appendChild(el);
+    });
+    $("newName").disabled = st.members.length >= 8;
+    $("selfRow").hidden = !(account && myId && !st.members.some(m => m.uid === myId) && st.members.length < 8);
+    const spl = $("spList"); spl.innerHTML = "";
+    SPECIALS.forEach(sp => {
+      const b = document.createElement("button"); b.type = "button"; b.id = "sp-" + sp.key;
+      const on = st.specials.includes(sp.key);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+      b.textContent = (sp.key === "split" ? "÷ " : sp.key === "prev" ? "← " : sp.key === "again" ? "↻ " : "") + sp.label;
+      b.disabled = st.spinning;
+      b.onclick = () => {
+        st.specials = on ? st.specials.filter(k => k !== sp.key) : SPECIALS.map(x => x.key).filter(k => k === sp.key || st.specials.includes(k));
+        render(); saveRoom();
+      };
+      spl.appendChild(b);
+    });
+    const sel = $("kanji"); sel.innerHTML = "";
+    st.members.forEach(m => { const o=document.createElement("option"); o.value=m.id; o.textContent=m.name; sel.appendChild(o); });
+    sel.value = st.kanjiId;
+  }
+
+  function renderTape(){
+    const v = view(), tape = $("tape"); tape.innerHTML = "";
+    if(!v){ tape.innerHTML = `<div class="empty">ルームを読み込んでいます…</div>`; return; }
+    const ci = idxOf(v);
+    v.digits.forEach((g,i) => {
+      const el = document.createElement("div");
+      el.className = "cell" + (i===ci?" current":"") + (g.who!=null?" done":"") + (g.d===0?" zero":"");
+      el.innerHTML = `<span class="place">${g.place}</span><span class="d">${g.d}</span><span class="yen">${yen(g.value)}</span><span class="who"></span>`;
+      const w = el.querySelector(".who");
+      if(g.who!=null){ w.textContent = whoText(v,g); w.style.color = whoColor(v,g); w.title = whoLong(v,g); }
+      else if(g.d===0) w.textContent = "0円";
+      tape.appendChild(el);
+    });
+  }
+
+  function renderNow(){
+    const v = view();
+    if(!v){ $("nowLabel").textContent = "接続中"; $("nowBig").textContent = "—"; return; }
+    const i = idxOf(v), cur = i >= 0 ? v.digits[i] : null;
+    if(cur){
+      const final = isFinalDigit(v, i);
+      $("nowLabel").textContent = st.spinning || guestSpinning ? "回転中…"
+        : final ? "いよいよ最後の桁"
+        : (mode==="guest" ? "幹事が次に回す桁" : "次の桁");
+      $("nowBig").innerHTML = `${cur.place}の位 <b>${cur.d}</b> ＝ ${yen(cur.value)}`;
+    } else {
+      $("nowLabel").textContent = "すべての桁が決まりました";
+      $("nowBig").textContent = yen(v.total) + " 割り振り完了";
+    }
+    {
+      const ev = $("event"); ev.textContent = v.lastEvent || ""; ev.hidden = !v.lastEvent;
+    }
+    const done = !cur;
+    $("spinBtn").disabled = done || st.spinning;
+    $("allBtn").disabled = done || st.spinning;
+    $("resetBtn").disabled = st.spinning;
+  }
+
+  function renderLog(){
+    const v = view(), log = $("log"); log.innerHTML = "";
+    if(!v) return;
+    v.digits.filter(g => g.who != null).forEach(g => {
+      const li = document.createElement("li");
+      li.textContent = `${g.place}の位 ${g.d} → ${whoLong(v,g)}（${yen(g.value)}）`;
+      log.appendChild(li);
+    });
+  }
+
+  function renderResults(){
+    const v = view(), box = $("res"); box.innerHTML = "";
+    if(!v) return;
+    const guest = mode === "guest";
+    const sums = Object.fromEntries(v.members.map(m => [m.id, 0]));
+    v.digits.forEach(g => {
+      if(g.who == null) return;
+      const alloc = g.alloc || { [g.who]: g.value };
+      for(const [id, amt] of Object.entries(alloc)) if(id in sums) sums[id] += amt;
+    });
+    const assigned = Object.values(sums).reduce((a,b)=>a+b,0);
+    if(assigned === 0){
+      box.innerHTML = `<div class="empty">まだ誰も当たっていません。一の位から順にルーレットで負担者が決まり、いちばん大きい桁は最後です。</div>`;
+      return;
+    }
+    const complete = idxOf(v) < 0;
+    const max = Math.max(...Object.values(sums), 1);
+    const addrOk = B58.test(v.addr || "");
+    const rate = Number(v.rate);
+    const meMember = guest && myId ? v.members.find(m => m.uid === myId) : null;
+    const order = [...v.members].sort((a,b) => sums[b.id]-sums[a.id]);
+    order.forEach(m => {
+      const isMe = meMember && meMember.id === m.id;
+      const p = document.createElement("div"); p.className = "person" + (isMe ? " me" : "");
+      p.innerHTML = `<div class="nm"><i style="background:${colorOf(v,m.id)}"></i><span></span></div>
+        <div class="sum">${yen(sums[m.id])}</div>
+        <div class="bar"><span style="width:${sums[m.id]/max*100}%;background:${colorOf(v,m.id)}"></span></div>
+        <div class="sub"></div>`;
+      p.querySelector(".nm span").textContent = m.name;
+      const sub = p.querySelector(".sub");
+      sub.insertAdjacentHTML("beforeend", `<span>合計の ${Math.round(sums[m.id]/v.total*1000)/10}%</span>`);
+      if(isMe) sub.insertAdjacentHTML("beforeend", `<span class="tag you">あなた</span>`);
+      if(m.id === v.kanjiId){
+        sub.insertAdjacentHTML("beforeend", `<span class="tag kanji">幹事・受け取り側</span>`);
+      } else if(sums[m.id] > 0){
+        const amt = rate > 0 ? sums[m.id]/rate : NaN;
+        const fixed = v.token === "SOL" ? +amt.toFixed(6) : +amt.toFixed(2);
+        sub.insertAdjacentHTML("beforeend", `<span class="tag">${isFinite(fixed)?fixed:"—"} ${v.token}</span>`);
+        const ready = addrOk && isFinite(fixed) && fixed > 0 && complete;
+        let show = false;
+        if(!guest){
+          const b = document.createElement("button"); b.className="btn sm"; b.type="button";
+          b.textContent = st.openQR===m.id ? "QRを閉じる" : "送金QRを出す";
+          b.disabled = !ready;
+          b.onclick = () => { st.openQR = st.openQR===m.id ? null : m.id; renderResults(); };
+          sub.appendChild(b);
+          show = st.openQR === m.id;
+        } else show = isMe;
+        if(!addrOk) sub.insertAdjacentHTML("beforeend", `<span>幹事のアドレスが入るとQRを出せます</span>`);
+        else if(!complete) sub.insertAdjacentHTML("beforeend", `<span>全桁が決まるとQRを出せます</span>`);
+        if(show && ready) p.appendChild(payBlock(v, m, fixed, sums[m.id]));
+      }
+      box.appendChild(p);
+    });
+  }
+
+  function payBlock(v, m, amount, jpy){
+    const url = payURL(v.addr, amount, v.token, m.name, jpy);
+    const w = document.createElement("div"); w.className="qr-wrap";
+    w.innerHTML = `<div class="qr lg"></div><div style="display:grid;gap:8px;min-width:0">
+      <div style="font-size:13px"><b></b> → <b></b>：${amount} ${v.token}（${yen(jpy)}）</div>
+      <div class="url"></div>
+      <div class="row"><button class="btn sm" type="button">URLをコピー</button><span class="hint" aria-live="polite"></span></div></div>`;
+    const bs = w.querySelectorAll("b"); bs[0].textContent = m.name; bs[1].textContent = memberName(v, v.kanjiId);
+    copyable(w.querySelector("button"), w.querySelector(".url"), w.querySelector(".hint"), url);
+    qrInto(w.querySelector(".qr"), url, 168);
+    return w;
+  }
+
+  function copyable(btn, box, msg, text){
+    box.textContent = text;
+    btn.onclick = () => {
+      navigator.clipboard.writeText(text).then(() => { msg.textContent = "コピーしました"; })
+        .catch(() => { const r=document.createRange(); r.selectNodeContents(box); const s=getSelection(); s.removeAllRanges(); s.addRange(r); msg.textContent = "選択しました。手動でコピーしてください"; });
+    };
+  }
+  function qrInto(el, text, size){
+    if(window.QRCode) new QRCode(el, { text, width:size, height:size, correctLevel: QRCode.CorrectLevel.M });
+    else el.textContent = "QRライブラリを読み込めませんでした";
+  }
+
+  function payURL(addr, amount, token, payer, jpy){
+    const q = new URLSearchParams();
+    q.set("amount", String(amount));
+    if(token==="USDC") q.set("spl-token", USDC_DEVNET);
+    q.set("label", "ケタペイ");
+    q.set("message", `${payer}さんの負担分 ${Number(jpy).toLocaleString("ja-JP")}円`);
+    q.set("memo", `keta-pay:${jpy}`);
+    return `solana:${addr}?` + q.toString().replace(/\+/g,"%20");
+  }
+
+  // ---------- room (host) ----------
+  const joinURL = id => `${ARTIFACT_URL}#room-${id}`;
+
+  let roomViewKey = "";
+  function renderRoom(){
+    if(mode === "guest"){ roomViewKey = ""; return; }
+    const body = $("roomBody");
+    // 入力中の合言葉を消さないよう、表示内容が変わるときだけ作り直す
+    const key = [capsReady, !!db, !!myId, roomId, roomPass, st.members.filter(m => m.uid).length].join("|");
+    if(key === roomViewKey) return;
+    roomViewKey = key;
+    if(!capsReady){ body.innerHTML = `<p class="hint">接続を確認しています…</p>`; return; }
+    if(!db || !myId){
+      body.innerHTML = `<p class="hint">参加QRは、claude.ai にサインインした状態でこのページを開くと使えます。ルーレットと送金QRはこのままでも使えます。</p>`;
+      return;
+    }
+    if(!roomId){
+      body.innerHTML = `<p class="hint">ルームを作ると、友達は参加QRを読み取るか、合言葉を入れるだけで参加できます。名前を登録すると、結果や自分の送金QRを自分のスマホで見られます。</p>
+        <form class="row" id="makeForm">
+          <label for="makePass" style="flex:1">合言葉（数字・ひらがな・英字など）
+            <input id="makePass" maxlength="16" autocomplete="off">
+          </label>
+          <button class="btn primary" type="submit" style="align-self:flex-end">ルームを作る</button>
+        </form>
+        <hr class="sep">
+        <form class="row" id="enterForm">
+          <label for="enterPass" style="flex:1">合言葉で参加する
+            <input id="enterPass" maxlength="16" autocomplete="off" placeholder="幹事に聞いた合言葉">
+          </label>
+          <button class="btn" type="submit" style="align-self:flex-end">参加</button>
+        </form>
+        <p class="err" id="roomErr" hidden></p>`;
+      $("makePass").value = newPass();
+      $("makeForm").onsubmit = e => { e.preventDefault(); createRoom($("makePass").value); };
+      $("enterForm").onsubmit = e => { e.preventDefault(); joinByPass($("enterPass").value); };
+      return;
+    }
+    const joined = st.members.filter(m => m.uid).length;
+    body.innerHTML = `<div class="joinbox"><div class="qr" id="joinQR"></div>
+        <div style="display:grid;gap:6px;min-width:0">
+          <div class="hint">合言葉</div><div class="roomcode"></div>
+          <div class="hint">参加済み ${joined}人</div>
+        </div></div>
+      <div class="url" id="joinUrl"></div>
+      <div class="row"><button class="btn sm" type="button" id="copyJoin">URLをコピー</button>
+        <button class="btn sm" type="button" id="closeRoom">ルームを閉じる</button><span class="hint" id="copyMsg" aria-live="polite"></span></div>
+      <p class="err" id="roomErr" hidden></p>
+      <p class="note">友達がこのページを開けるように、右上の「共有」から相手を招待してください。名前の登録には書き込みできる権限（同じ組織なら Contributor、組織外ならメール招待の Editor）が必要です。閲覧だけの人も結果と自分の送金QRは見られます。</p>`;
+    body.querySelector(".roomcode").textContent = roomPass || "—";
+    qrInto($("joinQR"), joinURL(roomId), 150);
+    copyable($("copyJoin"), $("joinUrl"), $("copyMsg"), joinURL(roomId));
+    $("closeRoom").onclick = closeRoom;
+  }
+  const roomErr = t => { const e = $("roomErr"); if(e){ e.textContent = t || ""; e.hidden = !t; } };
+
+  function payload(){
+    return {
+      hostId: myId, pass: roomPass,
+      members: st.members.map(m => ({ id:m.id, name:m.name, uid:m.uid || null })),
+      kanjiId: st.kanjiId, total: st.total, gameId: st.gameId || "",
+      digits: st.digits.map(g => ({ place:g.place, d:g.d, value:g.value, who:g.who ?? null, sp:g.sp ?? null, alloc:g.alloc ?? null, seg:g.seg ?? null })),
+      specials: spOn(st), lastEvent: st.lastEvent || "",
+      addr: B58.test(st.addr) ? st.addr : "", token: st.token, rate: st.rate,
+    };
+  }
+
+  let saveTimer = null, saving = false, dirty = false;
+  function saveRoom(){
+    if(!roomId || !db || mode !== "main") return;
+    clearTimeout(saveTimer); saveTimer = setTimeout(flush, 350);
+  }
+  async function flush(){
+    if(!roomId) return;
+    if(saving){ dirty = true; return; }
+    saving = true;
+    try { await db.doc("rooms/" + roomId).set(payload()); roomErr(""); }
+    catch(e){ roomErr(e && e.code === "invalid_argument" ? "ルームを更新できませんでした（書き込み権限がありません）。" : "ルームを更新できませんでした。少し待ってからもう一度操作してください。"); }
+    saving = false;
+    if(dirty){ dirty = false; flush(); }
+  }
+
+  async function createRoom(raw){
+    const pass = normPass(raw);
+    if(pass.length < 3){ roomErr("合言葉は3文字以上にしてください。"); return; }
+    const id = toId(pass);
+    if(!ROOM_RE.test(id)){ roomErr("合言葉が長すぎます。短くしてください。"); return; }
+    try {
+      const snap = await db.doc("rooms/" + id).get();
+      if(snap.exists && snap.data().hostId !== myId){ roomErr("その合言葉は今ほかのルームで使われています。別の合言葉にしてください。"); return; }
+      roomId = id; roomPass = pass;
+      await db.doc("rooms/" + id).set(payload());
+      lsSet(LS_KEY, id);
+      subscribeJoins(); render();
+    } catch(e){
+      roomId = null; roomPass = ""; render();
+      roomErr("ルームを作れませんでした。サインイン状態と権限を確認してください。");
+    }
+  }
+  async function joinByPass(raw){
+    const pass = normPass(raw);
+    if(!pass){ roomErr("合言葉を入れてください。"); return; }
+    const id = toId(pass);
+    if(!ROOM_RE.test(id)){ roomErr("その合言葉のルームは見つかりませんでした。"); return; }
+    let snap;
+    try { snap = await db.doc("rooms/" + id).get(); }
+    catch(e){ roomErr("ルームを探せませんでした。通信状況を確認してください。"); return; }
+    if(!snap.exists){ roomErr("その合言葉のルームは見つかりませんでした。幹事に合言葉をもう一度確認してください。"); return; }
+    if(snap.data().hostId === myId){ adoptRoom(id, snap.data()); render(); return; }
+    mode = "guest"; guestRoom = id; roomState = null;
+    try { history.replaceState(null, "", "#room-" + id); } catch(e){}
+    startGuest(); render();
+  }
+  function leaveGuest(){
+    if(unsubGuest){ unsubGuest(); unsubGuest = null; }
+    clearTimeout(loadTimer);
+    mode = "main"; guestRoom = null; roomState = null; guestQueue = Promise.resolve();
+    try { history.replaceState(null, "", location.pathname + location.search); } catch(e){}
+    render();
+  }
+  async function closeRoom(){
+    const id = roomId; roomId = null; roomPass = ""; lsSet(LS_KEY, null);
+    if(unsubJoins){ unsubJoins(); unsubJoins = null; }
+    render();
+    try { await db.doc("rooms/" + id).delete(); } catch(e){}
+  }
+
+  function subscribeJoins(){
+    if(unsubJoins) unsubJoins();
+    const id = roomId;
+    unsubJoins = db.collection("joins").where("room","==",id).onSnapshot(snap => {
+      if(roomId !== id) return;
+      let changed = false;
+      snap.docs.forEach(d => {
+        if(removedUids.has(d.id)) return;
+        const b = d.data() || {};
+        const name = String(b.name || "").trim().slice(0,12);
+        if(!name) return;
+        const m = st.members.find(x => x.uid === d.id);
+        if(!m){
+          if(st.members.length >= 8 || st.spinning) return;
+          const nm = mk(name); nm.uid = d.id; st.members.push(nm); changed = true;
+        } else if(m.name !== name){ m.name = name; changed = true; }
+      });
+      if(changed){ render(); saveRoom(); }
+    }, () => roomErr("参加者の一覧を読み込めませんでした。"));
+  }
+
+  // host が以前のルームに戻る / ゲストリンクを自分で開いた
+  function adoptRoom(id, data){
+    mode = "main"; roomId = id; roomPass = data.pass || ""; lsSet(LS_KEY, id);
+    if(location.hash) history.replaceState(null, "", location.pathname + location.search);
+    st.members = (data.members || []).map(m => ({ id:m.id, name:m.name, uid:m.uid || null }));
+    st.members.forEach(m => { const n = parseInt(String(m.id).slice(1),10); if(n >= nextId) nextId = n+1; });
+    st.kanjiId = data.kanjiId; st.total = data.total; st.digits = data.digits || []; st.gameId = data.gameId || ("g" + rid(10));
+    st.addr = data.addr || ""; st.token = data.token || "SOL"; st.rate = data.rate || 25000;
+    st.specials = spOn(data); st.lastEvent = data.lastEvent || "";
+    $("total").value = Number(st.total).toLocaleString("ja-JP");
+    $("addr").value = st.addr; $("token").value = st.token; $("rate").value = st.rate;
+    subscribeJoins();
+  }
+
+  // ---------- guest ----------
+  let guestSpinning = false, guestQueue = Promise.resolve(), loadTimer = null;
+  function renderGuest(){
+    $("guestCode").textContent = roomState && roomState.pass ? "合言葉 " + roomState.pass : "";
+    const me = roomState && myId ? roomState.members.find(m => m.uid === myId) : null;
+    $("joinOk").hidden = !me;
+    if(me) $("joinOk").textContent = `「${me.name}」で参加中です。名前を直すときは入れ直して参加し直してください。`;
+    const noId = capsReady && (!db || !myId);
+    $("joinBtn").disabled = !roomState || noId;
+    $("joinName").disabled = !roomState || noId;
+    if(noId){ guestErr("名前の登録には claude.ai へのサインインが必要です。"); }
+    else if(canWrite === false && !me){ guestErr("このページへの書き込み権限がないため名前を登録できません。幹事に名前を追加してもらうか、書き込みできる権限で招待してもらってください。結果はこのまま見られます。"); }
+  }
+  const guestErr = t => { $("joinErr").textContent = t || ""; $("joinErr").hidden = !t; };
+
+  function startGuest(){
+    if(!db){ $("guestStatus").textContent = "ルームを見るには claude.ai にサインインしてこのページを開いてください。"; render(); return; }
+    loadTimer = setTimeout(() => { $("guestStatus").textContent = "ルームにまだつながりません。通信状況を確認してください。"; }, 10000);
+    unsubGuest = db.doc("rooms/" + guestRoom).onSnapshot(snap => {
+      if(!snap.metadata.fromCache){ clearTimeout(loadTimer); }
+      if(!snap.exists){
+        if(!snap.metadata.fromCache){ roomState = null; $("guestStatus").textContent = "このルームは見つかりませんでした。閉じられたか、リンクが違う可能性があります。"; render(); }
+        return;
+      }
+      const data = snap.data();
+      if(myId && data.hostId === myId){
+        unsubGuest(); unsubGuest = null; adoptRoom(guestRoom, data); guestRoom = null; render(); return;
+      }
+      const next = JSON.parse(JSON.stringify(data));
+      $("guestStatus").textContent = "幹事の画面とつながっています。";
+      guestQueue = guestQueue.then(() => applyGuest(next));
+    }, () => { clearTimeout(loadTimer); $("guestStatus").textContent = "ルームを読み込めませんでした。このページを開ける権限があるか確認してください。"; });
+  }
+  async function applyGuest(next){
+    const prev = roomState;
+    const newly = prev ? next.digits.filter((g,i) => g.who != null && (!prev.digits[i] || prev.digits[i].who == null || prev.digits[i].place !== g.place)) : [];
+    const sameShape = prev && prev.total === next.total;
+    if(sameShape && newly.length === 1 && !reduce){
+      // 1桁だけ進んだときはルーレットを回して見せる
+      const g = newly[0];
+      const pending = JSON.parse(JSON.stringify(next));
+      pending.digits = pending.digits.map(x => (x.place === g.place ? { ...x, who:null } : x));
+      roomState = pending; guestSpinning = true; render();
+      const seg = segments(next).find(x => x.key === g.seg);
+      if(seg) await animateTo(seg);
+      guestSpinning = false;
+    }
+    roomState = next; render(); maybeRecord();
+  }
+
+  $("leaveBtn").onclick = leaveGuest;
+  $("joinForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const name = $("joinName").value.trim().slice(0,12);
+    if(!name){ guestErr("名前を入れてください。"); return; }
+    if(!db || !myId || !guestRoom) return;
+    $("joinBtn").disabled = true; guestErr("");
+    try {
+      await db.doc("joins/" + myId).set({ room: guestRoom, name });
+      $("joinOk").hidden = false; $("joinOk").textContent = "登録しました。幹事の画面に反映されるまで少し待ってください。";
+    } catch(err){
+      guestErr(err && err.code === "invalid_argument"
+        ? "このページへの書き込み権限がないため登録できませんでした。幹事に名前を追加してもらうか、書き込みできる権限で招待してもらってください。"
+        : "登録できませんでした。通信状況を確認して、もう一度押してください。");
+    }
+    $("joinBtn").disabled = false;
+  });
+
+  // ---------- host actions ----------
+  function resetSpins(){ st.openQR = null; st.lastEvent = ""; buildDigits(); }
+  function removeMember(id){
+    if(st.spinning) return;
+    const m = st.members.find(x => x.id === id); if(!m) return;
+    const had = st.digits.some(g => g.who === id || (g.alloc && id in g.alloc));
+    if(m.uid){
+      removedUids.add(m.uid);
+      // 退出させた参加者の登録を消す（オーナーのみ可能。失敗しても画面上は外す）
+      if(db) db.doc("joins/" + m.uid).delete().catch(() => {});
+    }
+    st.members = st.members.filter(x => x.id !== id);
+    if(st.kanjiId === id) st.kanjiId = st.members[0].id;
+    if(had) resetSpins();
+    render(); saveRoom();
+  }
+
+  $("spinBtn").onclick = () => spinOnce();
+  $("allBtn").onclick = async () => { while(idxOf(st) >= 0 && !st.spinning){ await spinOnce(); } };
+  $("resetBtn").onclick = () => { resetSpins(); render(); saveRoom(); };
+  $("total").addEventListener("change", e => {
+    const v = parseInt(e.target.value.replace(/[^\d]/g,""),10);
+    const err = $("totalErr");
+    if(!v || v < 1 || v > 99999999){ err.textContent = "1円〜99,999,999円の整数を入れてください。"; err.hidden = false; return; }
+    err.hidden = true; st.total = v; e.target.value = v.toLocaleString("ja-JP"); resetSpins(); render(); saveRoom();
+  });
+  $("addForm").addEventListener("submit", e => {
+    e.preventDefault(); const v = $("newName").value.trim();
+    if(!v || st.members.length>=8 || st.spinning) return;
+    st.members.push(mk(v)); $("newName").value=""; render(); saveRoom();
+  });
+  $("kanji").onchange = e => { st.kanjiId = e.target.value; st.openQR=null; render(); saveRoom(); autoKanjiAddr(); };
+  $("addSelf").onclick = () => {
+    if(!account || !myId || st.members.some(m => m.uid === myId) || st.members.length >= 8) return;
+    const m = mk(account.name); m.uid = myId; st.members.push(m);
+    render(); saveRoom();
+  };
+
+  function setAddr(v){
+    st.addr = v.trim();
+    const bad = st.addr && !B58.test(st.addr);
+    $("addrErr").textContent = bad ? "アドレスの形式が正しくありません。Base58 の 32〜44 文字を入れてください。" : "";
+    $("addrErr").hidden = !bad;
+    renderResults(); saveRoom();
+  }
+  $("addr").addEventListener("input", e => { $("addrOk").hidden = true; setAddr(e.target.value); });
+  $("token").onchange = e => { st.token = e.target.value; st.rate = e.target.value==="SOL" ? 25000 : 150; $("rate").value = st.rate; renderResults(); saveRoom(); };
+  $("rate").addEventListener("input", e => { st.rate = parseFloat(e.target.value.replace(/,/g,"")) || 0; renderResults(); saveRoom(); });
+
+  // QR画像からアドレス読み取り
+  function parseAddr(text){
+    let t = String(text || "").trim();
+    if(/^solana:/i.test(t)) t = t.slice(7).split("?")[0];
+    try { t = decodeURIComponent(t); } catch(e){}
+    return B58.test(t) ? t : null;
+  }
+  // 画像のQRからアドレスを読む。成功でアドレス、失敗で理由の文で reject
+  function readQRImage(f){
+    return new Promise((resolve, reject) => {
+      if(!window.jsQR){ reject("QR読み取りの部品を読み込めませんでした。アドレスを直接貼り付けてください。"); return; }
+      const url = URL.createObjectURL(f), img = new Image();
+      img.onload = () => {
+        const sc = Math.min(1, 1400/Math.max(img.width, img.height));
+        const c = document.createElement("canvas"); c.width = Math.round(img.width*sc); c.height = Math.round(img.height*sc);
+        const x = c.getContext("2d"); x.drawImage(img,0,0,c.width,c.height);
+        const r = jsQR(x.getImageData(0,0,c.width,c.height).data, c.width, c.height, { inversionAttempts:"attemptBoth" });
+        URL.revokeObjectURL(url);
+        if(!r){ reject("画像の中にQRコードが見つかりませんでした。QRが大きくはっきり写った画像で試してください。"); return; }
+        const a = parseAddr(r.data);
+        if(!a){ reject("QRは読めましたが、Solana のアドレスではありませんでした。"); return; }
+        resolve(a);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject("画像を開けませんでした。"); };
+      img.src = url;
+    });
+  }
+  $("addrFile").addEventListener("change", e => {
+    const f = e.target.files && e.target.files[0]; e.target.value = "";
+    const err = $("addrErr"), ok = $("addrOk"); err.hidden = true; ok.hidden = true;
+    if(!f) return;
+    readQRImage(f).then(a => {
+      $("addr").value = a; setAddr(a);
+      ok.textContent = "QRからアドレスを読み取りました。"; ok.hidden = false;
+    }, msg => { err.textContent = msg; err.hidden = false; });
+  });
+
+  // ---------- account ----------
+  const shortAddr = a => a ? a.slice(0,4) + "…" + a.slice(-4) : "";
+  let accViewKey = "";
+  function badgesOf(games){
+    const list = [
+      { name:"常連", on: games.length >= 5, how:"5回参加" },
+      { name:"奢り王", on: games.some(g => g.total > 0 && g.paid/g.total >= 0.5), how:"1回で半分以上を負担" },
+      { name:"0円の奇跡", on: games.some(g => g.paid === 0 && g.members >= 3), how:"3人以上で負担0円" },
+      { name:"最後の桁キラー", on: games.some(g => g.topHit), how:"いちばん大きい桁を引く" },
+      { name:"幹事の鑑", on: games.filter(g => g.kanji).length >= 3, how:"幹事を3回" },
+    ];
+    return list;
+  }
+  function renderAccount(){
+    const body = $("accBody");
+    const key = JSON.stringify([capsReady, !!db, myId, accountLoaded, account, myGames.length, myGames[0] && myGames[0].id, accEditing]);
+    if(key === accViewKey) return;
+    accViewKey = key;
+    if(!capsReady){ body.innerHTML = `<p class="hint">接続を確認しています…</p>`; return; }
+    if(!db || !myId){ body.innerHTML = `<p class="hint">claude.ai にサインインしてこのページを開くと、アカウントを作って戦績を残せます。</p>`; return; }
+    if(!accountLoaded){ body.innerHTML = `<p class="hint">アカウントを読み込んでいます…</p>`; return; }
+    if(!account || accEditing){
+      body.innerHTML = `<p class="hint">${account ? "アカウントを編集します。" : "ニックネームとウォレットを登録すると、参加時の名前入力や幹事アドレスの入力が自動になり、割り勘の戦績が残ります。"}</p>
+        <form id="accForm" style="display:grid;gap:10px">
+          <label for="accName">ニックネーム
+            <input id="accName" maxlength="12" autocomplete="off" required>
+          </label>
+          <label for="accWallet">ウォレットアドレス（devnet・任意）
+            <input id="accWallet" autocomplete="off" spellcheck="false" placeholder="Base58, 32〜44文字">
+          </label>
+          <div class="row"><label class="filebtn" for="accFile">QR画像から読み取る<input type="file" id="accFile" accept="image/*"></label></div>
+          <p class="err" id="accErr" hidden></p>
+          <div class="row"><button class="btn primary" type="submit">${account ? "保存" : "アカウントを作る"}</button>
+            ${account ? `<button class="btn" type="button" id="accCancel">やめる</button>` : ""}</div>
+        </form>`;
+      $("accName").value = account ? account.name : "";
+      $("accWallet").value = account ? (account.wallet || "") : "";
+      const err = t => { $("accErr").textContent = t || ""; $("accErr").hidden = !t; };
+      $("accFile").onchange = e => {
+        const f = e.target.files && e.target.files[0]; e.target.value = ""; if(!f) return;
+        readQRImage(f).then(a => { $("accWallet").value = a; err(""); }, err);
+      };
+      if(account) $("accCancel").onclick = () => { accEditing = false; renderAccount(); };
+      $("accForm").onsubmit = async e => {
+        e.preventDefault();
+        const name = $("accName").value.trim().slice(0,12), wallet = $("accWallet").value.trim();
+        if(!name){ err("ニックネームを入れてください。"); return; }
+        if(wallet && !B58.test(wallet)){ err("ウォレットアドレスの形式が正しくありません。"); return; }
+        try {
+          await db.doc("accounts/" + myId).set({ name, wallet });
+          accEditing = false;
+        } catch(x){
+          err(x && x.code === "invalid_argument" ? "このページへの書き込み権限がないため保存できませんでした。" : "保存できませんでした。もう一度押してください。");
+        }
+      };
+      return;
+    }
+    const games = myGames;
+    const paidSum = games.reduce((a,g) => a + (g.paid || 0), 0);
+    const rate = games.length ? Math.round(games.reduce((a,g) => a + (g.total ? g.paid/g.total : 0), 0) / games.length * 100) : 0;
+    body.innerHTML = `<div class="acc-head"><div class="avatar"></div>
+        <div style="min-width:0;flex:1"><div class="acc-name"></div><div class="acc-wallet"></div></div>
+        <button class="btn sm" type="button" id="accEdit">編集</button></div>
+      <div class="stats">
+        <div class="stat"><b>${games.length}</b><span>参加回数</span></div>
+        <div class="stat"><b>${paidSum.toLocaleString("ja-JP")}</b><span>累計負担（円）</span></div>
+        <div class="stat"><b>${rate}%</b><span>平均負担率</span></div>
+      </div>
+      <div class="badges" id="accBadges"></div>
+      <ul class="hist" id="accHist"></ul>`;
+    const av = body.querySelector(".avatar"); av.style.background = myColor; av.textContent = account.name.slice(0,1);
+    body.querySelector(".acc-name").textContent = account.name;
+    body.querySelector(".acc-wallet").textContent = account.wallet ? shortAddr(account.wallet) : "ウォレット未登録";
+    $("accEdit").onclick = () => { accEditing = true; renderAccount(); };
+    badgesOf(games).forEach(b => {
+      const el = document.createElement("span"); el.className = "badge" + (b.on ? "" : " off");
+      el.textContent = b.name; el.title = b.how + (b.on ? "（獲得済み）" : "（未獲得）");
+      $("accBadges").appendChild(el);
+    });
+    const hist = $("accHist");
+    if(!games.length){ hist.innerHTML = `<li><span class="hint">まだ戦績がありません。ルーレットに「自分」として参加すると記録されます。</span></li>`; }
+    games.slice(0,5).forEach(g => {
+      const li = document.createElement("li");
+      const d = new Date(g.at); const when = isNaN(d) ? "" : `${d.getMonth()+1}/${d.getDate()}`;
+      li.innerHTML = `<span></span><span></span>`;
+      li.firstChild.textContent = `${when} ${g.kanji ? "幹事" : ""} ${g.members}人・${yen(g.total)}`;
+      li.lastChild.textContent = yen(g.paid);
+      hist.appendChild(li);
+    });
+  }
+
+  // 終わったゲームを自分の戦績として1回だけ記録
+  function maybeRecord(){
+    const v = view();
+    if(!v || !v.gameId || !db || !myId || !account) return;
+    if(idxOf(v) >= 0 || !v.digits.some(g => g.who != null)) return;
+    const me = v.members.find(m => m.uid === myId); if(!me) return;
+    if(myGames.some(g => g.id === v.gameId) || recording.has(v.gameId)) return;
+    let paid = 0;
+    v.digits.forEach(g => { if(g.who == null) return; const a = g.alloc || { [g.who]: g.value }; paid += a[me.id] || 0; });
+    const top = v.digits.find(g => g.d > 0);
+    recording.add(v.gameId);
+    db.doc("accounts/" + myId).collection("games").doc(v.gameId).set({
+      at: new Date().toISOString(), total: v.total, paid, members: v.members.length,
+      kanji: v.kanjiId === me.id, topHit: !!(top && top.who === me.id), pass: mode === "guest" ? (v.pass || "") : roomPass,
+    }).catch(() => recording.delete(v.gameId));
+  }
+
+  // 幹事が自分のアカウントを持っていればアドレスを自動入力
+  function autoKanjiAddr(){
+    const k = st.members.find(m => m.id === st.kanjiId);
+    if(!k || !k.uid || !db) return;
+    db.doc("accounts/" + k.uid).get().then(snap => {
+      const w = snap.exists && snap.data().wallet;
+      if(!w || !B58.test(w) || st.kanjiId !== k.id) return;
+      st.addr = w; $("addr").value = w; setAddr(w);
+      $("addrOk").textContent = `${k.name}さんのアカウントのアドレスを入れました。`; $("addrOk").hidden = false;
+    }).catch(() => {});
+  }
+
+  function startAccount(){
+    if(!db || !myId) return;
+    if(user && user.me) user.me().then(m => { if(m && m.color){ myColor = m.color; accViewKey = ""; renderAccount(); } });
+    const ref = db.doc("accounts/" + myId);
+    const t = setTimeout(() => { if(!accountLoaded){ accountLoaded = true; render(); } }, 10000);
+    ref.onSnapshot(snap => {
+      if(!snap.metadata.fromCache) clearTimeout(t);
+      accountLoaded = true;
+      account = snap.exists ? snap.data() : null;
+      if(account && mode === "guest" && !$("joinName").value) $("joinName").value = account.name;
+      render(); maybeRecord();
+    }, () => { clearTimeout(t); accountLoaded = true; render(); });
+    ref.collection("games").orderBy("at","desc").limit(200).onSnapshot(snap => {
+      myGames = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderAccount(); maybeRecord();
+    }, () => {});
+  }
+
+  // ---------- theme ----------
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawWheel);
+  new MutationObserver(drawWheel).observe(document.documentElement, { attributes:true, attributeFilter:["data-theme"] });
+  if(document.fonts) document.fonts.ready.then(drawWheel);
+
+  // ---------- boot ----------
+  buildDigits(); render();
+
+  (async () => {
+    try {
+      const use = window.claude && window.claude.use;
+      if(use){
+        [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+        if(user){ myId = await user.id(); canWrite = await user.can("data.write"); }
+      }
+    } catch(e){ db = null; }
+    capsReady = true;
+    startAccount();
+    if(mode === "guest"){ startGuest(); render(); return; }
+    const saved = lsGet(LS_KEY);
+    if(db && myId && saved && ROOM_RE.test(saved)){
+      try {
+        const snap = await db.doc("rooms/" + saved).get();
+        if(snap.exists && snap.data().hostId === myId) adoptRoom(saved, snap.data());
+        else lsSet(LS_KEY, null);
+      } catch(e){}
+    }
+    render();
+  })();
+})();
+</script>
+
+</body></html>
